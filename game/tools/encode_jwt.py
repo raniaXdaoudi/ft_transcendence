@@ -1,0 +1,11 @@
+#!/usr/bin/env python3
+
+from argparse import ArgumentParser
+from jwt import encode as jwt_encode
+
+if __name__ == '__main__':
+    parser = ArgumentParser()
+    parser.add_argument('-j', '--jwt-secret', type=str, required=True)
+    parser.add_argument('-I', '--user-id', type=int, required=True)
+    arguments = parser.parse_args()
+    print(jwt_encode({'user_id': arguments.user_id}, arguments.jwt_secret, 'HS256'))

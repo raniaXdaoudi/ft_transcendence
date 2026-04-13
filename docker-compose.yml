@@ -1,0 +1,124 @@
+services:
+  rabbitmq:
+    image: 'rabbitmq:latest'
+    hostname: 'rabbitmq'
+    healthcheck:
+      test: ["CMD-SHELL", "rabbitmq-diagnostics -q ping"]
+      interval: 30s
+      timeout: 30s
+      retries: 3
+      start_period: 30s
+  matchmaker:
+    hostname: matchmaker
+    init: true
+    environment:
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      MAX_TOURNAMENTS: ${MAX_TOURNAMENTS}
+    env_file: .env
+    build: matchmaker
+    ports:
+      - "8765:8765"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      web:
+        condition: service_healthy
+    volumes:
+      - certificates:/certificates
+  game:
+    hostname: game
+    init: true
+    build: game
+    ports:
+      - ${PORT_RANGE}:${PORT_RANGE}
+    environment:
+      RPC_HOST: ${RPC_HOST}
+      GAME_HOST: ${GAME_HOST}
+      PORT_RANGE: ${PORT_RANGE}
+      JWT_SECRET: ${JWT_SECRET}
+    env_file:
+      - .env
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      web:
+        condition: service_healthy
+    volumes:
+      - certificates:/certificates
+  web:
+    container_name: web
+    hostname: web
+    build: web
+    environment:
+      PUBLIC_HOST: ${PUBLIC_HOST}
+      GAME_HOST: ${GAME_HOST}
+      MIN_TOURNAMENT_PLAYERS: ${MIN_TOURNAMENT_PLAYERS}
+      MAX_TOURNAMENT_PLAYERS: ${MAX_TOURNAMENT_PLAYERS}
+      OAUTH2_UID: ${OAUTH2_UID}
+      OAUTH2_SECRET: ${OAUTH2_SECRET}
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY}
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "cat /tmp/ready"]
+      interval: 30s
+      timeout: 30s
+      retries: 3
+      start_period: 30s
+    volumes:
+      - certificates:/certificates
+      - staticfiles:/app/staticfiles
+  nginx:
+    container_name: nginx
+    image: nginx
+    ports:
+      - "8001:8001"
+      - "4243:4243"
+    volumes:
+      - ./docker/nginx.template:/etc/nginx/templates/default.conf.template
+      - staticfiles:/app/static
+      - certificates:/certificates
+    depends_on:
+      matchmaker:
+        condition: service_started
+      web:
+        condition: service_started
+    environment:
+      PUBLIC_HOST: ${PUBLIC_HOST}
+    env_file:
+      - .env
+  postgres:
+    container_name: postgres
+    hostname: postgres
+    image: 'postgres:latest'
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    env_file: .env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $POSTGRES_USER -d $POSTGRES_DB"]
+      interval: 30s
+      timeout: 30s
+      retries: 3
+      start_period: 30s
+
+volumes:
+  staticfiles:
+  certificates:
+  postgres_data:

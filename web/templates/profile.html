@@ -1,0 +1,13 @@
+{% load i18n %}
+{% block content %}
+
+<a class="btn btn-primary" href="{% url 'logout' %}">{% trans "Logout" %}</a>
+<br>
+<a class="btn btn-dark" href="#enable_otp_page" >{% trans "Enable OTP with QR-Code" %}</a>
+<br>
+<a class="btn btn-primary" href="#remove_all_otp_devices">{% trans "Remove current OTP-Device" %}</a>
+<br>
+<a class="btn btn-dark" href="#change_info_site">{% trans "Change Profile Info" %}</a>
+<br>
+
+{% endblock %}

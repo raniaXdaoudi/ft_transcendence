@@ -1,0 +1,13 @@
+services:
+  rabbitmq:
+    image: 'rabbitmq:latest'
+  game:
+    init: true
+    build: .
+    ports:
+      - ${PORT_RANGE}:${PORT_RANGE}
+    environment:
+      RPC_HOST: rabbitmq
+      GAME_HOST: ${GAME_HOST}
+      PORT_RANGE: ${PORT_RANGE}
+      JWT_SECRET: ${JWT_SECRET}

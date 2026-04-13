@@ -1,0 +1,12 @@
+{% load static %}
+{% load i18n %}
+<!DOCTYPE html>
+<html>
+    <body>
+        {% trans "you wanna login using the 42 api?" %}<br/>
+        {% trans "your data is safe with us!" %}<br/>
+        <br/>        
+        <a class="btn btn-primary" href="https://api.intra.42.fr/oauth/authorize?client_id={% env OAUTH2_UID %}&redirect_uri=https://{% env PUBLIC_HOST %}:{% env PUBLIC_PORT %}/auth&response_type=code">{% trans "Login" %}</a>
+        <script type="text/javascript" src="{% static 'page.js' %}"></script>
+    </body>
+</html>

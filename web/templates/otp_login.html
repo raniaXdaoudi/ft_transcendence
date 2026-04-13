@@ -1,0 +1,9 @@
+{% load static %}
+{% load i18n %}
+
+{% trans "Please enter your OTP from your authenticator app:" %}
+
+<button id="verify-otp" onclick="send_otp_code_login()">{% trans "Verify OTP" %}</button>
+<input id="otp-input" type="text" placeholder="{% trans 'Enter OTP' %}">
+
+<script src="{% static 'js/spa.js' %}"></script>
